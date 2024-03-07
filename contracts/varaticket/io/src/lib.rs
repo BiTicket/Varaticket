@@ -45,7 +45,7 @@ pub type Tickets = Vec<(u128, Option<TokenMetadata>)>;
 
 #[doc(hidden)]
 impl State {
-    pub fn current_concert(self) -> CurrentEvent {
+    pub fn current_event(self) -> CurrentEvent {
         CurrentEvent {
             name: self.name,
             description: self.description,
@@ -77,7 +77,7 @@ pub struct CurrentEvent {
     pub tickets_left: u128,
 }
 
-// Concert related stuff
+// Event related stuff
 #[derive(Debug, Encode, Decode, TypeInfo)]
 #[codec(crate = gstd::codec)]
 #[scale_info(crate = gstd::scale_info)]
@@ -132,7 +132,7 @@ pub enum EventError {
 #[codec(crate = gstd::codec)]
 #[scale_info(crate = gstd::scale_info)]
 pub enum EventStateQuery {
-    CurrentConcert,
+    CurrentEvent,
     Buyers,
     UserTickets { user: ActorId },
 }
