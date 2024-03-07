@@ -36,18 +36,18 @@ static mut CONTRACT: Option<Event> = None;
 #[no_mangle]
 unsafe extern fn init() {
     let config: InitEvent = msg::load().expect("Unable to decode InitConfig");
-    let concert = Event {
+    let event = Event {
         owner_id: config.owner_id,
         contract_id: config.mtk_contract,
         ..Default::default()
     };
-    CONTRACT = Some(concert);
+    CONTRACT = Some(event);
 }
 
 #[gstd::async_main]
 async unsafe fn main() {
     let action: EventAction = msg::load().expect("Could not load Action");
-    let concert: &mut Concert = unsafe { CONTRACT.get_or_insert(Default::default()) };
+    let event: &mut Event = unsafe { CONTRACT.get_or_insert(Default::default()) };
     let reply = match action {
         EventAction::Create {
             creator,
@@ -56,7 +56,7 @@ async unsafe fn main() {
             number_of_tickets,
             date,
             token_id,
-        } => concert.create_concert(
+        } => event.create_event(
             name,
             description,
             creator,
@@ -64,13 +64,13 @@ async unsafe fn main() {
             date,
             token_id,
         ),
-        EventAction::Hold => concert.hold_concert().await,
+        EventAction::Hold => event.hold_event().await,
         EventAction::BuyTickets { amount, metadata } => {
-            concert.buy_tickets(amount, metadata).await
+            event.buy_tickets(amount, metadata).await
         }
     };
     msg::reply(reply, 0)
-        .expect("Failed to encode or reply with `Result<ConcertEvent, ConcertError>`.");
+        .expect("Failed to encode or reply with `Result<EventsEvent, EventError>`.");
 }
 
 impl Event {
@@ -148,7 +148,7 @@ impl Event {
         )
         .expect("Error in async message to Mtk contract")
         .await
-        .expect("CONCERT: Error minting concert tokens");
+        .expect("EVENT: Error minting event tokens");
 
         Ok(EventsEvent::Purchase {
             event_id: self.event_id,
@@ -157,7 +157,7 @@ impl Event {
     }
 
     // MINT SEVERAL FOR A USER
-    async fn hold_concert(&mut self) -> Result<EventsEvent, EventError> {
+    async fn hold_event(&mut self) -> Result<EventsEvent, EventError> {
         if msg::source() != self.creator {
             return Err(EventError::NotCreator);
         }
@@ -178,7 +178,7 @@ impl Event {
         )
         .expect("Error in async message to Mtk contract")
         .await
-        .expect("CONCERT: Error getting balances from the contract");
+        .expect("EVENT: Error getting balances from the contract");
         let balances: Vec<BalanceReply> =
             if let MtkEvent::BalanceOf(balance_response) = balance_response {
                 balance_response
@@ -198,7 +198,7 @@ impl Event {
             )
             .expect("Error in async message to Mtk contract")
             .await
-            .expect("CONCERT: Error burning balances");
+            .expect("EVENT: Error burning balances");
         }
 
         for actor in &self.buyers {
@@ -223,13 +223,13 @@ impl Event {
                 )
                 .expect("Error in async message to Mtk contract")
                 .await
-                .expect("CONCERT: Error minting tickets");
+                .expect("EVENT: Error minting tickets");
             }
         }
         self.running = false;
 
         Ok(EventsEvent::Hold {
-            event_id: self.concert_id,
+            event_id: self.event_id,
         })
     }
 }
