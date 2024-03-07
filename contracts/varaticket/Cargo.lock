@@ -786,17 +786,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "concert-io"
-version = "0.1.0"
-dependencies = [
- "gmeta 1.1.0",
- "gstd 1.1.0",
- "multi-token-io",
- "parity-scale-codec",
- "scale-info",
-]
-
-[[package]]
 name = "concurrent-queue"
 version = "2.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1647,6 +1636,17 @@ checksum = "feedafcaa9b749175d5ac357452a9d41ea2911da598fde46ce1fe02c37751291"
 dependencies = [
  "event-listener 5.2.0",
  "pin-project-lite",
+]
+
+[[package]]
+name = "events-io"
+version = "0.1.0"
+dependencies = [
+ "gmeta 1.1.0",
+ "gstd 1.1.0",
+ "multi-token-io",
+ "parity-scale-codec",
+ "scale-info",
 ]
 
 [[package]]
@@ -6334,7 +6334,7 @@ checksum = "830b7e5d4d90034032940e4ace0d9a9a057e7a45cd94e6c007832e39edb82f6d"
 name = "varaticket"
 version = "0.1.0"
 dependencies = [
- "concert-io",
+ "events-io",
  "gclient",
  "gear-wasm-builder",
  "gstd 1.1.0",

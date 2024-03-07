@@ -1,6 +1,6 @@
 #![no_std]
 
-use concert_io::*;
+use events_io::*;
 use gstd::{
     collections::{HashMap, HashSet},
     msg,
@@ -13,7 +13,7 @@ const ZERO_ID: ActorId = ActorId::zero();
 const NFT_COUNT: u128 = 1;
 
 #[derive(Default)]
-struct Concert {
+struct Event {
     owner_id: ActorId,
     contract_id: ActorId,
     name: String,
@@ -25,18 +25,18 @@ struct Concert {
     date: u128,
     buyers: HashSet<ActorId>,
     id_counter: u128,
-    concert_id: u128,
+    event_id: u128,
     running: bool,
     metadata: HashMap<ActorId, HashMap<u128, Option<TokenMetadata>>>,
     token_id: u128,
 }
 
-static mut CONTRACT: Option<Concert> = None;
+static mut CONTRACT: Option<Event> = None;
 
 #[no_mangle]
 unsafe extern fn init() {
-    let config: InitConcert = msg::load().expect("Unable to decode InitConfig");
-    let concert = Concert {
+    let config: InitEvent = msg::load().expect("Unable to decode InitConfig");
+    let concert = Event {
         owner_id: config.owner_id,
         contract_id: config.mtk_contract,
         ..Default::default()
@@ -46,10 +46,10 @@ unsafe extern fn init() {
 
 #[gstd::async_main]
 async unsafe fn main() {
-    let action: ConcertAction = msg::load().expect("Could not load Action");
+    let action: EventAction = msg::load().expect("Could not load Action");
     let concert: &mut Concert = unsafe { CONTRACT.get_or_insert(Default::default()) };
     let reply = match action {
-        ConcertAction::Create {
+        EventAction::Create {
             creator,
             name,
             description,
@@ -64,8 +64,8 @@ async unsafe fn main() {
             date,
             token_id,
         ),
-        ConcertAction::Hold => concert.hold_concert().await,
-        ConcertAction::BuyTickets { amount, metadata } => {
+        EventAction::Hold => concert.hold_concert().await,
+        EventAction::BuyTickets { amount, metadata } => {
             concert.buy_tickets(amount, metadata).await
         }
     };
@@ -73,8 +73,8 @@ async unsafe fn main() {
         .expect("Failed to encode or reply with `Result<ConcertEvent, ConcertError>`.");
 }
 
-impl Concert {
-    fn create_concert(
+impl Event {
+    fn create_event(
         &mut self,
         name: String,
         description: String,
@@ -82,13 +82,13 @@ impl Concert {
         number_of_tickets: u128,
         date: u128,
         token_id: u128,
-    ) -> Result<ConcertEvent, ConcertError> {
+    ) -> Result<EventsEvent, EventError> {
         if self.running {
-            return Err(ConcertError::AlreadyRegistered);
+            return Err(EventError::AlreadyRegistered);
         }
         self.creator = creator;
-        self.concert_id = self.id_counter;
-        self.ticket_ft_id = self.concert_id;
+        self.event_id = self.id_counter;
+        self.ticket_ft_id = self.event_id;
         self.name = name;
         self.description = description;
         self.number_of_tickets = number_of_tickets;
@@ -97,9 +97,9 @@ impl Concert {
         self.tickets_left = number_of_tickets;
         self.token_id = token_id;
 
-        Ok(ConcertEvent::Creation {
+        Ok(EventsEvent::Creation {
             creator,
-            concert_id: self.concert_id,
+            event_id: self.event_id,
             number_of_tickets,
             date,
         })
@@ -109,21 +109,21 @@ impl Concert {
         &mut self,
         amount: u128,
         mtd: Vec<Option<TokenMetadata>>,
-    ) -> Result<ConcertEvent, ConcertError> {
+    ) -> Result<EventsEvent, EventError> {
         if msg::source() == ZERO_ID {
-            return Err(ConcertError::ZeroAddress);
+            return Err(EventError::ZeroAddress);
         }
 
         if amount < 1 {
-            return Err(ConcertError::LessThanOneTicket);
+            return Err(EventError::LessThanOneTicket);
         }
 
         if self.tickets_left < amount {
-            return Err(ConcertError::NotEnoughTickets);
+            return Err(EventError::NotEnoughTickets);
         }
 
         if mtd.len() != amount as usize {
-            return Err(ConcertError::NotEnoughMetadata);
+            return Err(EventError::NotEnoughMetadata);
         }
 
         for meta in mtd {
@@ -150,16 +150,16 @@ impl Concert {
         .await
         .expect("CONCERT: Error minting concert tokens");
 
-        Ok(ConcertEvent::Purchase {
-            concert_id: self.concert_id,
+        Ok(EventsEvent::Purchase {
+            event_id: self.event_id,
             amount,
         })
     }
 
     // MINT SEVERAL FOR A USER
-    async fn hold_concert(&mut self) -> Result<ConcertEvent, ConcertError> {
+    async fn hold_concert(&mut self) -> Result<EventsEvent, EventError> {
         if msg::source() != self.creator {
-            return Err(ConcertError::NotCreator);
+            return Err(EventError::NotCreator);
         }
         // get balances from a contract
         let accounts: Vec<_> = self.buyers.clone().into_iter().collect();
@@ -228,8 +228,8 @@ impl Concert {
         }
         self.running = false;
 
-        Ok(ConcertEvent::Hold {
-            concert_id: self.concert_id,
+        Ok(EventsEvent::Hold {
+            event_id: self.concert_id,
         })
     }
 }
@@ -241,9 +241,9 @@ extern fn state() {
         .expect("Failed to encode or reply with `State` from `state()`");
 }
 
-impl From<Concert> for State {
-    fn from(value: Concert) -> Self {
-        let Concert {
+impl From<Event> for State {
+    fn from(value: Event) -> Self {
+        let Event {
             owner_id,
             contract_id,
             name,
@@ -255,7 +255,7 @@ impl From<Concert> for State {
             date,
             buyers,
             id_counter,
-            concert_id,
+            event_id,
             running,
             metadata,
             token_id,
@@ -268,7 +268,7 @@ impl From<Concert> for State {
             .map(|(k, v)| (k, v.into_iter().collect()))
             .collect();
 
-        State {
+        Event {
             owner_id,
             contract_id,
             name,
@@ -280,7 +280,7 @@ impl From<Concert> for State {
             date,
             buyers,
             id_counter,
-            concert_id,
+            event_id,
             running,
             metadata,
             token_id,

@@ -7,8 +7,8 @@ use multi_token_io::TokenMetadata;
 pub struct ContractMetadata;
 
 impl Metadata for ContractMetadata {
-    type Init = In<InitConcert>;
-    type Handle = InOut<ConcertAction, Result<ConcertEvent, ConcertError>>;
+    type Init = In<InitEvent>;
+    type Handle = InOut<EventAction, Result<EventsEvent, EventError>>;
     type Reply = ();
     type Others = ();
     type Signal = ();
@@ -34,7 +34,7 @@ pub struct State {
     pub buyers: Vec<ActorId>,
 
     pub id_counter: u128,
-    pub concert_id: u128,
+    pub event_id: u128,
     pub running: bool,
     /// user to token id to metadata
     pub metadata: Vec<(ActorId, Tickets)>,
@@ -45,8 +45,8 @@ pub type Tickets = Vec<(u128, Option<TokenMetadata>)>;
 
 #[doc(hidden)]
 impl State {
-    pub fn current_concert(self) -> CurrentConcert {
-        CurrentConcert {
+    pub fn current_concert(self) -> CurrentEvent {
+        CurrentEvent {
             name: self.name,
             description: self.description,
             date: self.date,
@@ -69,7 +69,7 @@ impl State {
 #[derive(Debug, Default, Hash, PartialEq, Eq, PartialOrd, Ord, Clone, Encode, Decode, TypeInfo)]
 #[codec(crate = gstd::codec)]
 #[scale_info(crate = gstd::scale_info)]
-pub struct CurrentConcert {
+pub struct CurrentEvent {
     pub name: String,
     pub description: String,
     pub date: u128,
@@ -81,7 +81,7 @@ pub struct CurrentConcert {
 #[derive(Debug, Encode, Decode, TypeInfo)]
 #[codec(crate = gstd::codec)]
 #[scale_info(crate = gstd::scale_info)]
-pub enum ConcertAction {
+pub enum EventAction {
     Create {
         creator: ActorId,
         name: String,
@@ -100,18 +100,18 @@ pub enum ConcertAction {
 #[derive(Debug, Encode, Decode, TypeInfo)]
 #[codec(crate = gstd::codec)]
 #[scale_info(crate = gstd::scale_info)]
-pub enum ConcertEvent {
+pub enum EventsEvent {
     Creation {
         creator: ActorId,
-        concert_id: u128,
+        event_id: u128,
         number_of_tickets: u128,
         date: u128,
     },
     Hold {
-        concert_id: u128,
+        event_id: u128,
     },
     Purchase {
-        concert_id: u128,
+        event_id: u128,
         amount: u128,
     },
 }
@@ -119,7 +119,7 @@ pub enum ConcertEvent {
 #[derive(Debug, Encode, Decode, TypeInfo)]
 #[codec(crate = gstd::codec)]
 #[scale_info(crate = gstd::scale_info)]
-pub enum ConcertError {
+pub enum EventError {
     AlreadyRegistered,
     ZeroAddress,
     LessThanOneTicket,
@@ -131,7 +131,7 @@ pub enum ConcertError {
 #[derive(Debug, Encode, Decode, TypeInfo)]
 #[codec(crate = gstd::codec)]
 #[scale_info(crate = gstd::scale_info)]
-pub enum ConcertStateQuery {
+pub enum EventStateQuery {
     CurrentConcert,
     Buyers,
     UserTickets { user: ActorId },
@@ -140,8 +140,8 @@ pub enum ConcertStateQuery {
 #[derive(Debug, Encode, Decode, TypeInfo)]
 #[codec(crate = gstd::codec)]
 #[scale_info(crate = gstd::scale_info)]
-pub enum ConcertStateReply {
-    CurrentConcert(CurrentConcert),
+pub enum EventStateReply {
+    CurrentEvent(CurrentEvent),
     Buyers(Vec<ActorId>),
     UserTickets(Vec<Option<TokenMetadata>>),
 }
@@ -149,7 +149,7 @@ pub enum ConcertStateReply {
 #[derive(Debug, Encode, Decode, TypeInfo)]
 #[codec(crate = gstd::codec)]
 #[scale_info(crate = gstd::scale_info)]
-pub struct InitConcert {
+pub struct InitEvent {
     pub owner_id: ActorId,
     pub mtk_contract: ActorId,
 }

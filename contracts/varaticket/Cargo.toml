@@ -8,10 +8,10 @@ edition = "2021"
 [dependencies]
 gstd = { git = "https://github.com/gear-tech/gear", tag = "v1.1.0", features = ["debug"] }
 multi-token-io = { git = "https://github.com/gear-foundation/dapps", tag = "v1.1.0"}
-concert-io = { path = "io"}
+events-io = { path = "io"}
 
 [build-dependencies]
-concert-io = { path = "io"}
+events-io = { path = "io"}
 gear-wasm-builder = { git = "https://github.com/gear-tech/gear", tag = "v1.1.0", features = ["wasm-opt"] }
 
 [dev-dependencies]
