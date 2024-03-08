@@ -41,4 +41,11 @@ save this in a file called ```varaticket.meta.txt```
 
 ## LINK
 
-[Varaticket Testnet](https://idea.gear-tech.io/programs/0x67eb7602d72e5a6b51d40c1f05e9ffbe0a32b8e7ef671851bc6e87b2bb33c639?node=wss%3A%2F%2Ftestnet-archive.vara.network)
+varaticket sc works with multi-token program provided by gear.
+
+multitoken is already deployed too
+
+[Varaticket_sc Testnet](https://idea.gear-tech.io/programs/0xed389562b4092ef6edcedda66d63bdcc5aa3e3f8cbfe0c1f30b9551343320bc1?node=wss%3A%2F%2Ftestnet-archive.vara.network)
+
+
+[Varaticket_multi-token_sc Testnet](https://idea.gear-tech.io/programs/0x114e4a691766cd14e4cf3067a5a60f1fa526f6d0839827fb9b2e3c7bae2b9827?node=wss%3A%2F%2Ftestnet-archive.vara.network)
