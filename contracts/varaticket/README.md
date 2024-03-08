@@ -28,7 +28,7 @@ cargo tests --release
 
 ## TESNET PROGRAM DEPLOY
 
-## Meteadata
+## Metadata
 
 To interact with the Vara JS client, the following contract metadata is required.
 
