@@ -6,9 +6,9 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-gstd = { git = "https://github.com/gear-tech/gear", tag = "v1.1.0" }
-gmeta = { git = "https://github.com/gear-tech/gear", tag = "v1.1.0" }
-multi-token-io = { git = "https://github.com/gear-foundation/dapps", tag = "v1.1.0" }
+gstd = { version = "1.1.1", default-features = false}
+gmeta = { version = "1.1.1" }
+multi-token-io = { git = "https://github.com/gear-foundation/dapps"}
 
 parity-scale-codec = { version = "3", default-features = false }
 scale-info = { version = "2", default-features = false }

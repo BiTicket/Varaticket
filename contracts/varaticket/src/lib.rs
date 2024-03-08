@@ -34,7 +34,7 @@ struct Event {
 static mut CONTRACT: Option<Event> = None;
 
 #[no_mangle]
-unsafe extern fn init() {
+unsafe extern "C" fn init() {
     let config: InitEvent = msg::load().expect("Unable to decode InitConfig");
     let event = Event {
         owner_id: config.owner_id,
@@ -65,9 +65,7 @@ async unsafe fn main() {
             token_id,
         ),
         EventAction::Hold => event.hold_event().await,
-        EventAction::BuyTickets { amount, metadata } => {
-            event.buy_tickets(amount, metadata).await
-        }
+        EventAction::BuyTickets { amount, metadata } => event.buy_tickets(amount, metadata).await,
     };
     msg::reply(reply, 0)
         .expect("Failed to encode or reply with `Result<EventsEvent, EventError>`.");
@@ -162,7 +160,7 @@ impl Event {
             return Err(EventError::NotCreator);
         }
         // get balances from a contract
-        let accounts: Vec<_> = self.buyers.clone().into_iter().collect();
+        let accounts: Vec<ActorId> = self.buyers.clone().into_iter().collect();
         let tokens: Vec<TokenId> = iter::repeat(self.ticket_ft_id)
             .take(accounts.len())
             .collect();
@@ -235,7 +233,7 @@ impl Event {
 }
 
 #[no_mangle]
-extern fn state() {
+extern "C" fn state() {
     let contract = unsafe { CONTRACT.take().expect("Unexpected error in taking state") };
     msg::reply::<State>(contract.into(), 0)
         .expect("Failed to encode or reply with `State` from `state()`");
@@ -268,7 +266,7 @@ impl From<Event> for State {
             .map(|(k, v)| (k, v.into_iter().collect()))
             .collect();
 
-        Event {
+        State {
             owner_id,
             contract_id,
             name,

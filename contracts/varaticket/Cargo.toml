@@ -6,16 +6,19 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-gstd = { git = "https://github.com/gear-tech/gear", tag = "v1.1.0", features = ["debug"] }
-multi-token-io = { git = "https://github.com/gear-foundation/dapps", tag = "v1.1.0"}
+gstd = { version = "1.1.1"}
 events-io = { path = "io"}
+multi-token-io = { git = "https://github.com/gear-foundation/dapps"}
 
 [build-dependencies]
 events-io = { path = "io"}
-gear-wasm-builder = { git = "https://github.com/gear-tech/gear", tag = "v1.1.0", features = ["wasm-opt"] }
+gear-wasm-builder = { version = "1.1.1", features = ["wasm-opt"] }
 
 [dev-dependencies]
-gstd = { git = "https://github.com/gear-tech/gear", tag = "v1.1.0", features = ["debug"] }
-gtest = { git = "https://github.com/gear-tech/gear", tag = "v1.1.0" }
-gclient = { git = "https://github.com/gear-tech/gear", tag = "v1.1.0" }
+gstd = { version = "1.1.1"}
+
+gtest = { git = "https://github.com/gear-tech/gear.git", tag = "v1.1.1" }
+gclient = { git = "https://github.com/gear-tech/gear.git", tag = "v1.1.1" }
 tokio = { version = "1", features = ["full"] }
+
+multi-token = { git = "https://github.com/gear-foundation/dapps"}
