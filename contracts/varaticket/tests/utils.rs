@@ -64,7 +64,6 @@ pub fn create(
             description,
             number_of_tickets,
             date,
-            token_id: TOKEN_ID,
         },
     );
 
@@ -110,6 +109,8 @@ pub fn hold(event_program: &Program<'_>, event_id: u128) {
 
 pub fn check_current_event(
     event_program: &Program<'_>,
+    creator: ActorId,
+    event_id: u128,
     name: String,
     description: String,
     date: u128,
@@ -117,13 +118,15 @@ pub fn check_current_event(
     tickets_left: u128,
 ) {
     let state: State = event_program.read_state(0).expect("Can't read state");
+
     let CurrentEvent {
         name: true_name,
         description: true_description,
         date: true_date,
         number_of_tickets: true_number_of_tickets,
         tickets_left: true_tickets_left,
-    } = state.current_event();
+    } = state.current_event(creator, event_id);
+
     if name != true_name {
         std::panic!("EVENT: Event name differs.");
     }
@@ -141,21 +144,21 @@ pub fn check_current_event(
     }
 }
 
-pub fn check_user_tickets(
-    event_program: &Program<'_>,
-    user: ActorId,
-    tickets: Vec<Option<TokenMetadata>>,
-) {
-    let state: State = event_program.read_state(0).expect("Can't read state");
-    let true_tickets = state.user_tickets(user);
-    if tickets != true_tickets {
-        std::panic!("EVENT: User tickets differ.");
-    }
-}
+// pub fn check_user_tickets(
+//     event_program: &Program<'_>,
+//     user: ActorId,
+//     tickets: Vec<Option<TokenMetadata>>,
+// ) {
+//     let state: State = event_program.read_state(0).expect("Can't read state");
+//     let true_tickets = state.user_tickets(user);
+//     if tickets != true_tickets {
+//         std::panic!("EVENT: User tickets differ.");
+//     }
+// }
 
-pub fn check_buyers(event_program: &Program<'_>, buyers: Vec<ActorId>) {
-    let state: State = event_program.read_state(0).expect("Can't read state");
-    if buyers != state.buyers {
-        std::panic!("EVENT: Buyers list differs.");
-    }
-}
+// pub fn check_buyers(event_program: &Program<'_>, buyers: Vec<ActorId>) {
+//     let state: State = event_program.read_state(0).expect("Can't read state");
+//     if buyers != state.buyers {
+//         std::panic!("EVENT: Buyers list differs.");
+//     }
+// }

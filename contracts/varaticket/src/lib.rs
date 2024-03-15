@@ -3,7 +3,7 @@
 use events_io::*;
 use gstd::{
     collections::{HashMap, HashSet},
-    msg,
+    debug, msg,
     prelude::*,
     ActorId,
 };
@@ -12,23 +12,28 @@ use multi_token_io::{BalanceReply, MtkAction, MtkEvent, TokenId, TokenMetadata};
 const ZERO_ID: ActorId = ActorId::zero();
 const NFT_COUNT: u128 = 1;
 
-#[derive(Default)]
-struct Event {
-    owner_id: ActorId,
-    contract_id: ActorId,
+#[derive(Debug, Default)]
+struct EventInfo {
     name: String,
     description: String,
-    ticket_ft_id: u128,
     creator: ActorId,
     number_of_tickets: u128,
     tickets_left: u128,
     date: u128,
     buyers: HashSet<ActorId>,
-    id_counter: u128,
-    event_id: u128,
     running: bool,
     metadata: HashMap<ActorId, HashMap<u128, Option<TokenMetadata>>>,
     token_id: u128,
+    id_counter: u128,
+    event_id: u128,
+    ticket_ft_id: u128,
+}
+
+#[derive(Debug, Default)]
+struct Event {
+    owner_id: ActorId,
+    contract_id: ActorId,
+    events_info: HashMap<ActorId, HashMap<u128, EventInfo>>,
 }
 
 static mut CONTRACT: Option<Event> = None;
@@ -55,17 +60,11 @@ async unsafe fn main() {
             description,
             number_of_tickets,
             date,
-            token_id,
-        } => event.create_event(
-            name,
-            description,
-            creator,
-            number_of_tickets,
-            date,
-            token_id,
-        ),
-        EventAction::Hold => event.hold_event().await,
-        EventAction::BuyTickets { amount, metadata } => event.buy_tickets(amount, metadata).await,
+        } => event.create_event(name, description, creator, number_of_tickets, date),
+        // EventAction::Hold => event.hold_event().await,
+        // EventAction::BuyTickets { amount, metadata } => event.buy_tickets(amount, metadata).await,
+        EventAction::Hold => unimplemented!(),
+        EventAction::BuyTickets { amount, metadata } => unimplemented!(),
     };
     msg::reply(reply, 0)
         .expect("Failed to encode or reply with `Result<EventsEvent, EventError>`.");
@@ -79,31 +78,59 @@ impl Event {
         creator: ActorId,
         number_of_tickets: u128,
         date: u128,
-        token_id: u128,
     ) -> Result<EventsEvent, EventError> {
-        if self.running {
+        /* if self.running {
             return Err(EventError::AlreadyRegistered);
+        } */
+
+        let mut actor_ev_id = 0 as u128;
+        let mut ev_info = EventInfo {
+            creator,
+            name,
+            description,
+            number_of_tickets,
+            date,
+            running: true,
+            tickets_left: number_of_tickets,
+            ..Default::default()
+        };
+
+        if !self.events_info.contains_key(&creator) {
+            let mut new_actor: HashMap<u128, EventInfo> = HashMap::new();
+            ev_info.token_id += 1;
+            ev_info.id_counter = actor_ev_id;
+            ev_info.event_id = ev_info.id_counter;
+            ev_info.ticket_ft_id = ev_info.event_id;
+
+            new_actor.insert(actor_ev_id, ev_info);
+
+            self.events_info.insert(creator, new_actor);
+            debug!("ID: {:?}", actor_ev_id);
+            debug!("NEW: {:?}", &self);
+        } else {
+            let e = self.events_info.get_mut(&creator).unwrap();
+
+            actor_ev_id = e.keys().into_iter().max().unwrap() + 1;
+            ev_info.token_id = e[&(actor_ev_id - 1)].token_id + 1;
+            ev_info.id_counter = actor_ev_id;
+            ev_info.event_id = ev_info.id_counter;
+            ev_info.ticket_ft_id = ev_info.event_id;
+
+            debug!("ID ++: {:?}", actor_ev_id);
+
+            e.insert(actor_ev_id, ev_info);
+            debug!("NEW_evn: {:?}", &self);
         }
-        self.creator = creator;
-        self.event_id = self.id_counter;
-        self.ticket_ft_id = self.event_id;
-        self.name = name;
-        self.description = description;
-        self.number_of_tickets = number_of_tickets;
-        self.date = date;
-        self.running = true;
-        self.tickets_left = number_of_tickets;
-        self.token_id = token_id;
 
         Ok(EventsEvent::Creation {
             creator,
-            event_id: self.event_id,
+            event_id: actor_ev_id,
             number_of_tickets,
             date,
         })
     }
 
-    async fn buy_tickets(
+    /* async fn buy_tickets(
         &mut self,
         amount: u128,
         mtd: Vec<Option<TokenMetadata>>,
@@ -152,10 +179,10 @@ impl Event {
             event_id: self.event_id,
             amount,
         })
-    }
+    } */
 
     // MINT SEVERAL FOR A USER
-    async fn hold_event(&mut self) -> Result<EventsEvent, EventError> {
+    /* async fn hold_event(&mut self) -> Result<EventsEvent, EventError> {
         if msg::source() != self.creator {
             return Err(EventError::NotCreator);
         }
@@ -177,12 +204,14 @@ impl Event {
         .expect("Error in async message to Mtk contract")
         .await
         .expect("EVENT: Error getting balances from the contract");
+
         let balances: Vec<BalanceReply> =
             if let MtkEvent::BalanceOf(balance_response) = balance_response {
                 balance_response
             } else {
                 Vec::new()
             };
+
         // we know each user balance now
         for balance in &balances {
             msg::send_for_reply_as::<_, MtkEvent>(
@@ -229,7 +258,7 @@ impl Event {
         Ok(EventsEvent::Hold {
             event_id: self.event_id,
         })
-    }
+    } */
 }
 
 #[no_mangle]
@@ -244,44 +273,61 @@ impl From<Event> for State {
         let Event {
             owner_id,
             contract_id,
-            name,
-            description,
-            ticket_ft_id,
-            creator,
-            number_of_tickets,
-            tickets_left,
-            date,
-            buyers,
-            id_counter,
-            event_id,
-            running,
-            metadata,
-            token_id,
+            events_info,
         } = value;
 
-        let buyers = buyers.into_iter().collect();
+        let mut all_ev_info: Vec<(ActorId, EventStateInfo)> = Vec::new();
 
-        let metadata = metadata
-            .into_iter()
-            .map(|(k, v)| (k, v.into_iter().collect()))
-            .collect();
+        for (k, v) in events_info.iter() {
+            let mut ev_state_info: Vec<(u128, StateInfo)> = Vec::new();
+            for (k1, v1) in v.iter() {
+                let EventInfo {
+                    name,
+                    description,
+                    date,
+                    number_of_tickets,
+                    tickets_left,
+                    creator,
+                    buyers,
+                    running,
+                    metadata,
+                    token_id,
+                    id_counter,
+                    event_id,
+                    ticket_ft_id,
+                } = v1;
 
-        State {
+                let meta_data: Vec<(ActorId, Tickets)> = metadata
+                    .into_iter()
+                    .map(|(k, v)| (k.clone(), v.clone().into_iter().collect()))
+                    .collect();
+
+                let info = StateInfo {
+                    name: name.clone(),
+                    description: description.clone(),
+                    creator: *creator,
+                    number_of_tickets: *number_of_tickets,
+                    tickets_left: *tickets_left,
+                    date: *date,
+                    buyers: buyers.clone().into_iter().collect(),
+                    running: *running,
+                    metadata: meta_data,
+                    token_id: *token_id,
+                    id_counter: *id_counter,
+                    event_id: *event_id,
+                    ticket_ft_id: *ticket_ft_id,
+                };
+                ev_state_info.push((*k1, info));
+            }
+            all_ev_info.push((*k, ev_state_info));
+        }
+
+        let state = State {
             owner_id,
             contract_id,
-            name,
-            description,
-            ticket_ft_id,
-            creator,
-            number_of_tickets,
-            tickets_left,
-            date,
-            buyers,
-            id_counter,
-            event_id,
-            running,
-            metadata,
-            token_id,
-        }
+            ev_state_info: all_ev_info,
+        };
+        debug!("STATE: {:#?}", &state);
+        state
     }
 }

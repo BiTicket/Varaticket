@@ -18,52 +18,73 @@ impl Metadata for ContractMetadata {
 #[derive(Debug, Default, PartialEq, Eq, Encode, Decode, TypeInfo)]
 #[codec(crate = gstd::codec)]
 #[scale_info(crate = gstd::scale_info)]
-pub struct State {
-    pub owner_id: ActorId,
-    pub contract_id: ActorId,
-
+pub struct StateInfo {
     pub name: String,
     pub description: String,
-
-    pub ticket_ft_id: u128,
     pub creator: ActorId,
     pub number_of_tickets: u128,
     pub tickets_left: u128,
     pub date: u128,
-
     pub buyers: Vec<ActorId>,
-
+    pub running: bool,
+    pub metadata: Vec<(ActorId, Tickets)>,
+    /// user to token id to metadata
+    pub token_id: u128,
     pub id_counter: u128,
     pub event_id: u128,
-    pub running: bool,
-    /// user to token id to metadata
-    pub metadata: Vec<(ActorId, Tickets)>,
-    pub token_id: u128,
+    pub ticket_ft_id: u128,
+}
+#[derive(Debug, Default, PartialEq, Eq, Encode, Decode, TypeInfo)]
+#[codec(crate = gstd::codec)]
+#[scale_info(crate = gstd::scale_info)]
+pub struct State {
+    pub owner_id: ActorId,
+    pub contract_id: ActorId,
+    pub ev_state_info: Vec<(ActorId, EventStateInfo)>,
+
 }
 
+pub type EventStateInfo = Vec<(u128, StateInfo)>;
 pub type Tickets = Vec<(u128, Option<TokenMetadata>)>;
 
 #[doc(hidden)]
 impl State {
-    pub fn current_event(self) -> CurrentEvent {
-        CurrentEvent {
-            name: self.name,
-            description: self.description,
-            date: self.date,
-            number_of_tickets: self.number_of_tickets,
-            tickets_left: self.tickets_left,
+    pub fn current_event(self, creator: ActorId, event_id: u128) -> CurrentEvent {
+
+        let current = self.ev_state_info
+            .into_iter()
+            .find_map(|(some_creator, events)| {
+                (some_creator == creator)
+                    .then_some(events.into_iter().find(|(id, _)| *id == event_id))
+            })
+            .unwrap_or_default();
+
+        match current {
+            Some((_, info)) => {
+                let tickets_left = info.tickets_left;
+                let number_of_tickets = info.number_of_tickets;
+                CurrentEvent {
+                    name: info.name,
+                    description: info.description,
+                    date: info.date,
+                    number_of_tickets,
+                    tickets_left,
+                }
+            }
+            None => CurrentEvent::default(),
+
         }
     }
 
-    pub fn user_tickets(self, user: ActorId) -> Vec<Option<TokenMetadata>> {
-        self.metadata
-            .into_iter()
-            .find_map(|(some_user, tickets)| {
-                (some_user == user)
-                    .then_some(tickets.into_iter().map(|(_, tickets)| tickets).collect())
-            })
-            .unwrap_or_default()
-    }
+    // pub fn user_tickets(self, user: ActorId) -> Vec<Option<TokenMetadata>> {
+    //     self.metadata
+    //         .into_iter()
+    //         .find_map(|(some_user, tickets)| {
+    //             (some_user == user)
+    //                 .then_some(tickets.into_iter().map(|(_, tickets)| tickets).collect())
+    //         })
+    //         .unwrap_or_default()
+    // }
 }
 
 #[derive(Debug, Default, Hash, PartialEq, Eq, PartialOrd, Ord, Clone, Encode, Decode, TypeInfo)]
@@ -88,7 +109,6 @@ pub enum EventAction {
         description: String,
         number_of_tickets: u128,
         date: u128,
-        token_id: u128,
     },
     Hold,
     BuyTickets {
