@@ -62,9 +62,13 @@ async unsafe fn main() {
             date,
         } => event.create_event(name, description, creator, number_of_tickets, date),
         // EventAction::Hold => event.hold_event().await,
-        // EventAction::BuyTickets { amount, metadata } => event.buy_tickets(amount, metadata).await,
+        EventAction::BuyTickets {
+            creator,
+            event_id,
+            amount,
+            metadata,
+        } => event.buy_tickets(creator, event_id, amount, metadata).await,
         EventAction::Hold => unimplemented!(),
-        EventAction::BuyTickets { amount, metadata } => unimplemented!(),
     };
     msg::reply(reply, 0)
         .expect("Failed to encode or reply with `Result<EventsEvent, EventError>`.");
@@ -105,8 +109,6 @@ impl Event {
             new_actor.insert(actor_ev_id, ev_info);
 
             self.events_info.insert(creator, new_actor);
-            debug!("ID: {:?}", actor_ev_id);
-            debug!("NEW: {:?}", &self);
         } else {
             let e = self.events_info.get_mut(&creator).unwrap();
 
@@ -116,10 +118,7 @@ impl Event {
             ev_info.event_id = ev_info.id_counter;
             ev_info.ticket_ft_id = ev_info.event_id;
 
-            debug!("ID ++: {:?}", actor_ev_id);
-
             e.insert(actor_ev_id, ev_info);
-            debug!("NEW_evn: {:?}", &self);
         }
 
         Ok(EventsEvent::Creation {
@@ -130,8 +129,10 @@ impl Event {
         })
     }
 
-    /* async fn buy_tickets(
+    async fn buy_tickets(
         &mut self,
+        creator: ActorId,
+        event_id: u128,
         amount: u128,
         mtd: Vec<Option<TokenMetadata>>,
     ) -> Result<EventsEvent, EventError> {
@@ -143,28 +144,38 @@ impl Event {
             return Err(EventError::LessThanOneTicket);
         }
 
-        if self.tickets_left < amount {
-            return Err(EventError::NotEnoughTickets);
-        }
-
         if mtd.len() != amount as usize {
             return Err(EventError::NotEnoughMetadata);
         }
 
-        for meta in mtd {
-            self.id_counter += 1;
-            self.metadata
-                .entry(msg::source())
-                .or_default()
-                .insert(self.id_counter + 1, meta);
+        let event = self
+            .events_info
+            .get_mut(&creator)
+            .ok_or(EventError::EventNotFound)?;
+
+        let ev_info = event
+            .get_mut(&event_id)
+            .ok_or(EventError::EventIdNotFound)?;
+
+        if ev_info.tickets_left < amount {
+            return Err(EventError::NotEnoughTickets);
         }
 
-        self.buyers.insert(msg::source());
-        self.tickets_left -= amount;
+        for meta in mtd {
+            ev_info.id_counter += 1;
+            ev_info
+                .metadata
+                .entry(msg::source())
+                .or_default()
+                .insert(ev_info.id_counter + 1, meta);
+        }
+
+        ev_info.buyers.insert(msg::source());
+        ev_info.tickets_left -= amount;
         msg::send_for_reply_as::<_, MtkEvent>(
             self.contract_id,
             MtkAction::Mint {
-                id: self.token_id,
+                id: ev_info.token_id,
                 amount,
                 token_metadata: None,
             },
@@ -176,10 +187,11 @@ impl Event {
         .expect("EVENT: Error minting event tokens");
 
         Ok(EventsEvent::Purchase {
-            event_id: self.event_id,
+            creator,
+            event_id: ev_info.event_id,
             amount,
         })
-    } */
+    }
 
     // MINT SEVERAL FOR A USER
     /* async fn hold_event(&mut self) -> Result<EventsEvent, EventError> {
@@ -327,7 +339,7 @@ impl From<Event> for State {
             contract_id,
             ev_state_info: all_ev_info,
         };
-        debug!("STATE: {:#?}", &state);
+
         state
     }
 }

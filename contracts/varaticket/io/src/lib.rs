@@ -76,15 +76,36 @@ impl State {
         }
     }
 
-    // pub fn user_tickets(self, user: ActorId) -> Vec<Option<TokenMetadata>> {
-    //     self.metadata
-    //         .into_iter()
-    //         .find_map(|(some_user, tickets)| {
-    //             (some_user == user)
-    //                 .then_some(tickets.into_iter().map(|(_, tickets)| tickets).collect())
-    //         })
-    //         .unwrap_or_default()
-    // }
+    pub fn current_event_buyers(self, creator: ActorId, event_id: u128) -> Vec<ActorId> {
+        self.ev_state_info
+            .into_iter()
+            .find_map(|(some_creator, events)| {
+                (some_creator == creator)
+                    .then_some(events.into_iter().find(|(id, _)| *id == event_id))
+            })
+            .unwrap_or_default()
+            .map(|(_, info)| info.buyers)
+            .unwrap_or_default()
+    }
+
+    pub fn user_tickets(self, creator: ActorId, event_id: u128, user: ActorId) -> Vec<Option<TokenMetadata>> {
+
+        self.ev_state_info
+            .into_iter()
+            .find_map(|(some_creator, events)| {
+                (some_creator == creator)
+                    .then_some(events.into_iter().find(|(id, _)| *id == event_id))
+            })
+            .unwrap_or_default()
+            .map(|(_, info)| info.metadata)
+            .unwrap_or_default()
+            .into_iter()
+            .find_map(|(some_user, tickets)| {
+                (some_user == user)
+                    .then_some(tickets.into_iter().map(|(_, tickets)| tickets).collect())
+            })
+            .unwrap_or_default()
+    }
 }
 
 #[derive(Debug, Default, Hash, PartialEq, Eq, PartialOrd, Ord, Clone, Encode, Decode, TypeInfo)]
@@ -112,6 +133,8 @@ pub enum EventAction {
     },
     Hold,
     BuyTickets {
+        creator: ActorId,
+        event_id: u128,
         amount: u128,
         metadata: Vec<Option<TokenMetadata>>,
     },
@@ -131,6 +154,7 @@ pub enum EventsEvent {
         event_id: u128,
     },
     Purchase {
+        creator: ActorId,
         event_id: u128,
         amount: u128,
     },
@@ -146,6 +170,8 @@ pub enum EventError {
     NotEnoughTickets,
     NotEnoughMetadata,
     NotCreator,
+    EventNotFound,
+    EventIdNotFound,
 }
 
 #[derive(Debug, Encode, Decode, TypeInfo)]

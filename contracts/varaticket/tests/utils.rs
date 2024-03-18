@@ -81,19 +81,33 @@ pub fn create(
 
 pub fn buy(
     event_program: &Program<'_>,
+    creator: ActorId,
     event_id: u128,
     amount: u128,
     metadata: Vec<Option<TokenMetadata>>,
     error: Option<EventError>,
 ) {
-    let res = event_program.send(USER, EventAction::BuyTickets { amount, metadata });
+    let res = event_program.send(
+        USER,
+        EventAction::BuyTickets {
+            creator,
+            event_id,
+            amount,
+            metadata,
+        },
+    );
 
     if let Some(error) = error {
         assert!(res.contains(&(USER, Err::<EventsEvent, EventError>(error).encode())));
     } else {
         assert!(res.contains(&(
             USER,
-            Ok::<EventsEvent, EventError>(EventsEvent::Purchase { event_id, amount }).encode()
+            Ok::<EventsEvent, EventError>(EventsEvent::Purchase {
+                creator,
+                event_id,
+                amount
+            })
+            .encode()
         )));
     }
 }
@@ -144,21 +158,31 @@ pub fn check_current_event(
     }
 }
 
-// pub fn check_user_tickets(
-//     event_program: &Program<'_>,
-//     user: ActorId,
-//     tickets: Vec<Option<TokenMetadata>>,
-// ) {
-//     let state: State = event_program.read_state(0).expect("Can't read state");
-//     let true_tickets = state.user_tickets(user);
-//     if tickets != true_tickets {
-//         std::panic!("EVENT: User tickets differ.");
-//     }
-// }
+pub fn check_user_tickets(
+    event_program: &Program<'_>,
+    creator: ActorId,
+    event_id: u128,
+    user: ActorId,
+    tickets: Vec<Option<TokenMetadata>>,
+) {
+    let state: State = event_program.read_state(0).expect("Can't read state");
+    let true_tickets = state.user_tickets(creator, event_id, user);
+    if tickets != true_tickets {
+        std::panic!("EVENT: User tickets differ.");
+    }
+}
 
-// pub fn check_buyers(event_program: &Program<'_>, buyers: Vec<ActorId>) {
-//     let state: State = event_program.read_state(0).expect("Can't read state");
-//     if buyers != state.buyers {
-//         std::panic!("EVENT: Buyers list differs.");
-//     }
-// }
+pub fn check_buyers(
+    event_program: &Program<'_>,
+    creator: ActorId,
+    event_id: u128,
+    buyers: Vec<ActorId>,
+) {
+    let state: State = event_program.read_state(0).expect("Can't read state");
+
+    let state_buyers = state.current_event_buyers(creator, event_id);
+
+    if buyers != state_buyers {
+        std::panic!("EVENT: Buyers list differs.");
+    }
+}
