@@ -181,37 +181,51 @@ fn buy_tickets_failures() {
     );
 }
 
-// #[test]
-// fn hold_event() {
-//     let system = init_system();
-//     let event_program = init_event(&system);
+#[test]
+fn hold_event() {
+    let system = init_system();
+    let event_program = init_event(&system);
 
-//     create(
-//         &event_program,
-//         USER.into(),
-//         String::from("Sum 41"),
-//         String::from("Sum 41 concert in Madrid. 26/08/2022"),
-//         NUMBER_OF_TICKETS,
-//         DATE,
-//         EVENT_ID,
-//     );
+    create(
+        &event_program,
+        USER.into(),
+        String::from("Sum 41"),
+        String::from("Sum 41 concert in Madrid. 26/08/2022"),
+        NUMBER_OF_TICKETS,
+        DATE,
+        EVENT_ID,
+    );
 
-//     let metadata = vec![Some(TokenMetadata {
-//         title: Some(String::from("Sum 41 concert in Madrid 26/08/2022")),
-//         description: Some(String::from(
-//             "Sum 41 Madrid 26/08/2022 Ticket. Row 4. Seat 4.",
-//         )),
-//         media: Some(String::from("sum41.com")),
-//         reference: Some(String::from("UNKNOWN")),
-//     })];
+    let metadata = vec![Some(TokenMetadata {
+        title: Some(String::from("Sum 41 concert in Madrid 26/08/2022")),
+        description: Some(String::from(
+            "Sum 41 Madrid 26/08/2022 Ticket. Row 4. Seat 4.",
+        )),
+        media: Some(String::from("sum41.com")),
+        reference: Some(String::from("UNKNOWN")),
+    })];
 
-//     buy(&event_program, EVENT_ID, AMOUNT, metadata, None);
+    buy(
+        &event_program,
+        USER.into(),
+        EVENT_ID,
+        AMOUNT,
+        metadata,
+        None,
+    );
 
-//     let res = event_program.send(USER + 1, EventAction::Hold);
-//     assert!(res.contains(&(
-//         USER + 1,
-//         Err::<EventsEvent, EventError>(EventError::NotCreator).encode()
-//     )));
+    let res = event_program.send(
+        USER + 1,
+        EventAction::Hold {
+            creator: USER.into(),
+            event_id: EVENT_ID,
+        },
+    );
 
-//     hold(&event_program, EVENT_ID);
-// }
+    assert!(res.contains(&(
+        USER + 1,
+        Err::<EventsEvent, EventError>(EventError::NotCreator).encode()
+    )));
+
+    hold(&event_program, USER.into(), EVENT_ID);
+}

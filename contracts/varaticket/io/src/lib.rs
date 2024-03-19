@@ -131,7 +131,12 @@ pub enum EventAction {
         number_of_tickets: u128,
         date: u128,
     },
-    Hold,
+
+    Hold {
+        creator: ActorId,
+        event_id: u128,
+    },
+
     BuyTickets {
         creator: ActorId,
         event_id: u128,
@@ -151,6 +156,7 @@ pub enum EventsEvent {
         date: u128,
     },
     Hold {
+        creator: ActorId,
         event_id: u128,
     },
     Purchase {

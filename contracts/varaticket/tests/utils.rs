@@ -112,12 +112,12 @@ pub fn buy(
     }
 }
 
-pub fn hold(event_program: &Program<'_>, event_id: u128) {
-    let res = event_program.send(USER, EventAction::Hold);
+pub fn hold(event_program: &Program<'_>, creator: ActorId, event_id: u128) {
+    let res = event_program.send(USER, EventAction::Hold { creator, event_id });
 
     assert!(res.contains(&(
         USER,
-        Ok::<EventsEvent, EventError>(EventsEvent::Hold { event_id }).encode()
+        Ok::<EventsEvent, EventError>(EventsEvent::Hold { creator, event_id }).encode()
     )));
 }
 

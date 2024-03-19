@@ -61,15 +61,15 @@ async unsafe fn main() {
             number_of_tickets,
             date,
         } => event.create_event(name, description, creator, number_of_tickets, date),
-        // EventAction::Hold => event.hold_event().await,
+        EventAction::Hold { creator, event_id } => event.hold_event(creator, event_id).await,
         EventAction::BuyTickets {
             creator,
             event_id,
             amount,
             metadata,
         } => event.buy_tickets(creator, event_id, amount, metadata).await,
-        EventAction::Hold => unimplemented!(),
     };
+
     msg::reply(reply, 0)
         .expect("Failed to encode or reply with `Result<EventsEvent, EventError>`.");
 }
@@ -194,13 +194,27 @@ impl Event {
     }
 
     // MINT SEVERAL FOR A USER
-    /* async fn hold_event(&mut self) -> Result<EventsEvent, EventError> {
-        if msg::source() != self.creator {
+    async fn hold_event(
+        &mut self,
+        creator: ActorId,
+        event_id: u128,
+    ) -> Result<EventsEvent, EventError> {
+        let event = self
+            .events_info
+            .get_mut(&creator)
+            .ok_or(EventError::EventNotFound)?;
+
+        let ev_info = event
+            .get_mut(&event_id)
+            .ok_or(EventError::EventIdNotFound)?;
+
+        if msg::source() != ev_info.creator {
             return Err(EventError::NotCreator);
         }
+
         // get balances from a contract
-        let accounts: Vec<ActorId> = self.buyers.clone().into_iter().collect();
-        let tokens: Vec<TokenId> = iter::repeat(self.ticket_ft_id)
+        let accounts: Vec<ActorId> = ev_info.buyers.clone().into_iter().collect();
+        let tokens: Vec<TokenId> = iter::repeat(ev_info.ticket_ft_id)
             .take(accounts.len())
             .collect();
 
@@ -240,8 +254,8 @@ impl Event {
             .expect("EVENT: Error burning balances");
         }
 
-        for actor in &self.buyers {
-            let actor_metadata = self.metadata.get(actor);
+        for actor in &ev_info.buyers {
+            let actor_metadata = ev_info.metadata.get(actor);
             if let Some(actor_md) = actor_metadata.cloned() {
                 let mut ids = Vec::with_capacity(actor_md.len());
                 let amounts = vec![NFT_COUNT; actor_md.len()];
@@ -265,12 +279,13 @@ impl Event {
                 .expect("EVENT: Error minting tickets");
             }
         }
-        self.running = false;
+        ev_info.running = false;
 
         Ok(EventsEvent::Hold {
-            event_id: self.event_id,
+            creator,
+            event_id: ev_info.event_id,
         })
-    } */
+    }
 }
 
 #[no_mangle]
