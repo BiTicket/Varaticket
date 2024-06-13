@@ -24,7 +24,7 @@ function Ticketing() {
     date: 0
   });
 
-  const [creator, setCreator] = useState<string>('0x78ddba5083a4a93e53d63e9624d65635e824fbcf14d67a33f7a7f1882317f737');
+  const [creatorAddress, setCreatorAddress] = useState<string>('');
   const [name, setName] = useState<string>('qwe');
   const [description, setDescription] = useState<string>('qwe');
   const [number_of_Tickets, setNumberOfTickets] = useState<number>(3);
@@ -39,7 +39,7 @@ function Ticketing() {
 
   const metadata = ProgramMetadata.from(meta);
 
-  const handleIdChange = (e: React.ChangeEvent<HTMLInputElement>) => setCreator(account?.address || '0x78ddba5083a4a93e53d63e9624d65635e824fbcf14d67a33f7a7f1882317f737');
+  const handleIdChange = (e: React.ChangeEvent<HTMLInputElement>) => setCreatorAddress(account?.decodedAddress || '');
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => setName(e.target.value);
   const handleDescriptionChange = (e: React.ChangeEvent<HTMLInputElement>) => setDescription(e.target.value);
   const handleNumberTicketChange = (e: React.ChangeEvent<HTMLInputElement>) => setNumberOfTickets(parseInt(e.target.value, 10));
@@ -49,7 +49,7 @@ function Ticketing() {
     destination: programIDFT, // programId
     payload: {
       create: {
-        creator,
+        creator: creatorAddress,
         name,
         description,
         number_of_Tickets,
@@ -109,15 +109,15 @@ function Ticketing() {
 
   return (
     <Box as="form" onSubmit={signer} p={4} borderWidth={1} borderRadius="lg">
-      {/* <FormControl mb={4}>
-        <FormLabel>ID</FormLabel>
+      <FormControl mb={4}>
+        <FormLabel>Creator Address</FormLabel>
         <Input
-          placeholder='Creator'
+          placeholder='Creator Address'
           name='creator'
-          value={formData.creator}
-          onChange={handleChange}
+          value={creatorAddress}
+          onChange={handleIdChange}
         />
-      </FormControl> */}
+      </FormControl>
       <FormControl mb={4}>
         <FormLabel>Name</FormLabel>
         <Input
