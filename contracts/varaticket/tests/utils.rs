@@ -22,7 +22,7 @@ pub fn init_event(sys: &System) -> Program<'_> {
     let event_program = Program::current_opt(sys);
     let mtk_program = Program::from_file(
         sys,
-        "../varaticket/target/wasm32-unknown-unknown/release/multi_token.opt.wasm",
+        "../varaticket/target/wasm32-unknown-unknown/debug/multi_token.opt.wasm",
     );
     let res = mtk_program.send(
         USER,
