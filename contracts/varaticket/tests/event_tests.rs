@@ -89,33 +89,61 @@ fn buy_tickets() {
         EVENT_ID,
     );
 
-    let metadata = vec![Some(TokenMetadata {
-        title: Some(String::from("Sum 41 concert in Madrid 26/08/2022")),
-        description: Some(String::from(
-            "Sum 41 Madrid 26/08/2022 Ticket. Row 4. Seat 4.",
-        )),
-        media: Some(String::from("sum41.com")),
-        reference: Some(String::from("UNKNOWN")),
-    })];
+    create(
+        &event_program,
+        USER.into(),
+        String::from("Sum 42"),
+        String::from("Sum 42 concert in Madrid. 26/08/2022"),
+        NUMBER_OF_TICKETS,
+        DATE,
+        EVENT_ID + 1,
+    );
+
+    let metadata = vec![
+        Some(TokenMetadata {
+            title: Some(String::from("Sum 41 concert in Madrid 26/08/2022")),
+            description: Some(String::from(
+                "Sum 41 Madrid 26/08/2022 Ticket. Row 4. Seat 4.",
+            )),
+            media: Some(String::from("sum41.com")),
+            reference: Some(String::from("UNKNOWN")),
+        }),
+        Some(TokenMetadata {
+            title: Some(String::from("Sum 41 concert in Madrid 26/08/2022")),
+            description: Some(String::from(
+                "Sum 41 Madrid 26/08/2022 Ticket. Row 4. Seat 5.",
+            )),
+            media: Some(String::from("sum41.com")),
+            reference: Some(String::from("UNKNOWN")),
+        }),
+        Some(TokenMetadata {
+            title: Some(String::from("Sum 41 concert in Madrid 26/08/2022")),
+            description: Some(String::from(
+                "Sum 41 Madrid 26/08/2022 Ticket. Row 4. Seat 6.",
+            )),
+            media: Some(String::from("sum41.com")),
+            reference: Some(String::from("UNKNOWN")),
+        }),
+    ];
 
     buy(
         &event_program,
         USER.into(),
-        EVENT_ID,
-        AMOUNT,
+        EVENT_ID + 1,
+        AMOUNT + 2,
         metadata.clone(),
         None,
     );
     check_buyers(
         &event_program,
         USER.into(),
-        EVENT_ID,
+        EVENT_ID + 1,
         vec![ActorId::from(USER)],
     );
     check_user_tickets(
         &event_program,
         USER.into(),
-        EVENT_ID,
+        EVENT_ID + 1,
         ActorId::from(USER),
         metadata,
     );
@@ -196,36 +224,78 @@ fn hold_event() {
         EVENT_ID,
     );
 
-    let metadata = vec![Some(TokenMetadata {
-        title: Some(String::from("Sum 41 concert in Madrid 26/08/2022")),
-        description: Some(String::from(
-            "Sum 41 Madrid 26/08/2022 Ticket. Row 4. Seat 4.",
-        )),
-        media: Some(String::from("sum41.com")),
-        reference: Some(String::from("UNKNOWN")),
-    })];
+    let metadata = vec![
+        Some(TokenMetadata {
+            title: Some(String::from("Sum 41 concert in Madrid 26/08/2022")),
+            description: Some(String::from(
+                "Sum 41 Madrid 26/08/2022 Ticket. Row 4. Seat 4.",
+            )),
+            media: Some(String::from("sum41.com")),
+            reference: Some(String::from("UNKNOWN")),
+        }),
+        Some(TokenMetadata {
+            title: Some(String::from("Sum 41 concert in Madrid 26/08/2022")),
+            description: Some(String::from(
+                "Sum 41 Madrid 26/08/2022 Ticket. Row 4. Seat 5.",
+            )),
+            media: Some(String::from("sum41.com")),
+            reference: Some(String::from("UNKNOWN")),
+        }),
+        Some(TokenMetadata {
+            title: Some(String::from("Sum 41 concert in Madrid 26/08/2022")),
+            description: Some(String::from(
+                "Sum 41 Madrid 26/08/2022 Ticket. Row 4. Seat 6.",
+            )),
+            media: Some(String::from("sum41.com")),
+            reference: Some(String::from("UNKNOWN")),
+        }),
+    ];
+
+    let metadata_2 = vec![
+        Some(TokenMetadata {
+            title: Some(String::from("Sum 41 concert in Madrid 26/08/2022")),
+            description: Some(String::from(
+                "Sum 41 Madrid 26/08/2022 Ticket. Row 4. Seat 7.",
+            )),
+            media: Some(String::from("sum41.com")),
+            reference: Some(String::from("UNKNOWN")),
+        }),
+        Some(TokenMetadata {
+            title: Some(String::from("Sum 41 concert in Madrid 26/08/2022")),
+            description: Some(String::from(
+                "Sum 41 Madrid 26/08/2022 Ticket. Row 4. Seat 8.",
+            )),
+            media: Some(String::from("sum41.com")),
+            reference: Some(String::from("UNKNOWN")),
+        }),
+        Some(TokenMetadata {
+            title: Some(String::from("Sum 41 concert in Madrid 26/08/2022")),
+            description: Some(String::from(
+                "Sum 41 Madrid 26/08/2022 Ticket. Row 4. Seat 9.",
+            )),
+            media: Some(String::from("sum41.com")),
+            reference: Some(String::from("UNKNOWN")),
+        }),
+    ];
 
     buy(
         &event_program,
         USER.into(),
         EVENT_ID,
-        AMOUNT,
+        AMOUNT + 2,
         metadata,
         None,
     );
 
-    let res = event_program.send(
-        USER + 1,
-        EventAction::Hold {
+    event_program.send(
+        194,
+        EventAction::BuyTickets {
             creator: USER.into(),
             event_id: EVENT_ID,
+            amount: AMOUNT + 2,
+            metadata: metadata_2,
         },
     );
-
-    assert!(res.contains(&(
-        USER + 1,
-        Err::<EventsEvent, EventError>(EventError::NotCreator).encode()
-    )));
 
     hold(&event_program, USER.into(), EVENT_ID);
 }

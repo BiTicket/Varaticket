@@ -6,7 +6,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-gstd = { version = "1.4.1"}
+gstd = { version = "1.4.1", features = ["debug"] }
 events-io = { path = "io"}
 multi-token-io = { git = "https://github.com/gear-foundation/dapps", branch = "master" }
 

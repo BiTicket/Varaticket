@@ -6,7 +6,7 @@ use multi_token_io::{InitMtk, TokenMetadata};
 pub const USER: u64 = 193;
 pub const MTK_ID: u64 = 2;
 pub const EVENT_ID: u128 = 0;
-pub const TOKEN_ID: u128 = 1;
+pub const _TOKEN_ID: u128 = 1;
 pub const NUMBER_OF_TICKETS: u128 = 100;
 pub const AMOUNT: u128 = 1;
 pub const DATE: u128 = 100000;
@@ -167,6 +167,7 @@ pub fn check_user_tickets(
 ) {
     let state: State = event_program.read_state(0).expect("Can't read state");
     let true_tickets = state.user_tickets(creator, event_id, user);
+
     if tickets != true_tickets {
         std::panic!("EVENT: User tickets differ.");
     }

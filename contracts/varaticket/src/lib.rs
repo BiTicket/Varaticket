@@ -2,8 +2,8 @@
 
 use events_io::*;
 use gstd::{
-    collections::{HashMap, HashSet},
-    debug, msg,
+    collections::{BTreeMap, HashSet},
+    msg,
     prelude::*,
     ActorId,
 };
@@ -22,7 +22,7 @@ struct EventInfo {
     date: u128,
     buyers: HashSet<ActorId>,
     running: bool,
-    metadata: HashMap<ActorId, HashMap<u128, Option<TokenMetadata>>>,
+    metadata: BTreeMap<ActorId, BTreeMap<u128, Option<TokenMetadata>>>,
     token_id: u128,
     id_counter: u128,
     event_id: u128,
@@ -33,7 +33,7 @@ struct EventInfo {
 struct Event {
     owner_id: ActorId,
     contract_id: ActorId,
-    events_info: HashMap<ActorId, HashMap<u128, EventInfo>>,
+    events_info: BTreeMap<ActorId, BTreeMap<u128, EventInfo>>,
 }
 
 static mut CONTRACT: Option<Event> = None;
@@ -100,7 +100,7 @@ impl Event {
         };
 
         if !self.events_info.contains_key(&creator) {
-            let mut new_actor: HashMap<u128, EventInfo> = HashMap::new();
+            let mut new_actor: BTreeMap<u128, EventInfo> = BTreeMap::new();
             ev_info.token_id += 1;
             ev_info.id_counter = actor_ev_id;
             ev_info.event_id = ev_info.id_counter;
@@ -264,6 +264,7 @@ impl Event {
                     ids.push(token);
                     meta.push(token_meta);
                 }
+
                 msg::send_for_reply_as::<_, MtkEvent>(
                     self.contract_id,
                     MtkAction::MintBatch {
