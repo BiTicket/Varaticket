@@ -45,7 +45,7 @@ varaticket sc works with multi-token program provided by gear.
 
 multitoken is already deployed too
 
-[Varaticket_sc Testnet](https://idea.gear-tech.io./programs/0x7fb00a6f016d49675e4a0ff34fe1f4ab7e30912e1aa499de42c7c8c5fb4544da?node=wss%3A%2F%2Ftestnet.vara.network)
+[Varaticket_sc Testnet](https://idea.gear-tech.io./programs/0xc1af9e43ff91146295f204854683f6d672842cbb415322af079f693d19e1c547?node=wss%3A%2F%2Ftestnet.vara.network)
 
 
-[Varaticket_multi-token_sc Testnet](https://idea.gear-tech.io./programs/0x80703e8f4ce71508b1b664d32bbda61f5dc29d9caa750da522bf71b91023d9f9?node=wss%3A%2F%2Ftestnet.vara.network)
+[Varaticket_multi-token_sc Testnet](https://idea.gear-tech.io./programs/0xdffab8aa8ce402998bf506ad311247a016cd7b66c8df0010d12d06784975f5d0?node=wss%3A%2F%2Ftestnet.vara.network)
