@@ -172,7 +172,7 @@ impl Event {
 
         ev_info.buyers.insert(msg::source());
         ev_info.tickets_left -= amount;
-        msg::send_for_reply_as::<_, MtkEvent>(
+        match msg::send_for_reply_as::<_, MtkEvent>(
             self.contract_id,
             MtkAction::Mint {
                 id: ev_info.token_id,
@@ -181,10 +181,12 @@ impl Event {
             },
             0,
             0,
-        )
-        .expect("Error in async message to Mtk contract")
-        .await
-        .expect("EVENT: Error minting event tokens");
+        ) {
+            Ok(_) => (),
+            Err(e) => {
+                return Err(EventError::BuyMintError(e.to_string()));
+            }
+        }
 
         Ok(EventsEvent::Purchase {
             creator,
@@ -240,7 +242,7 @@ impl Event {
 
         // we know each user balance now
         for balance in &balances {
-            msg::send_for_reply_as::<_, MtkEvent>(
+            match msg::send_for_reply_as::<_, MtkEvent>(
                 self.contract_id,
                 MtkAction::Burn {
                     id: balance.id,
@@ -248,10 +250,12 @@ impl Event {
                 },
                 0,
                 0,
-            )
-            .expect("Error in async message to Mtk contract")
-            .await
-            .expect("EVENT: Error burning balances");
+            ) {
+                Ok(_) => (),
+                Err(e) => {
+                    return Err(EventError::HoldBurnError(e.to_string()));
+                }
+            }
         }
 
         for actor in &ev_info.buyers {
@@ -265,7 +269,7 @@ impl Event {
                     meta.push(token_meta);
                 }
 
-                msg::send_for_reply_as::<_, MtkEvent>(
+                match msg::send_for_reply_as::<_, MtkEvent>(
                     self.contract_id,
                     MtkAction::MintBatch {
                         ids,
@@ -274,10 +278,12 @@ impl Event {
                     },
                     0,
                     0,
-                )
-                .expect("Error in async message to Mtk contract")
-                .await
-                .expect("EVENT: Error minting tickets");
+                ) {
+                    Ok(_) => (),
+                    Err(e) => {
+                        return Err(EventError::HoldMintError(e.to_string()));
+                    }
+                }
             }
         }
         ev_info.running = false;

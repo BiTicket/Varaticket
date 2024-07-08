@@ -178,6 +178,9 @@ pub enum EventError {
     NotCreator,
     EventNotFound,
     EventIdNotFound,
+    BuyMintError(String),
+    HoldMintError(String),
+    HoldBurnError(String),
 }
 
 #[derive(Debug, Encode, Decode, TypeInfo)]
