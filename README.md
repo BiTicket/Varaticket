@@ -32,8 +32,9 @@ Join the future of events with *VTicket*. 🌟
 - 👉 [Telegram](https://t.me/V_Ticket)
 - 👉 [Follow us on X](https://x.com/Vticket285101?t=gtHeXIgnKHHS2U68K3cLmg&s=09)
 
+![vtk2](https://github.com/user-attachments/assets/a785c144-9040-455e-8c72-dd341515deb2)
+
 ## Tags
 
 #NFT #Blockchain #Tickets #Web3
-[vtk2](https://github.com/user-attachments/assets/57dcccca-2cf1-4a1c-ac29-8540b437defe)
-```!
+```
