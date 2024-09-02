@@ -32,7 +32,6 @@ Join the future of events with *VTicket*. 🌟
 - 👉 [Telegram](https://t.me/V_Ticket)
 - 👉 [Follow us on X](https://x.com/Vticket285101?t=gtHeXIgnKHHS2U68K3cLmg&s=09)
 
-![vtk2](https://github.com/user-attachments/assets/a785c144-9040-455e-8c72-dd341515deb2)
 
 ## Tags
 
