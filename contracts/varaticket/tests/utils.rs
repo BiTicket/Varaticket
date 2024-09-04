@@ -52,8 +52,9 @@ pub fn create(
     creator: ActorId,
     name: String,
     description: String,
+    event_img_url: String,
     number_of_tickets: u128,
-    date: u128,
+    event_init_date: u128,
     event_id: u128,
 ) {
     let res = event_program.send(
@@ -63,7 +64,8 @@ pub fn create(
             name,
             description,
             number_of_tickets,
-            date,
+            event_img_url,
+            event_init_date,
         },
     );
 
@@ -73,7 +75,7 @@ pub fn create(
             creator,
             event_id,
             number_of_tickets,
-            date,
+            event_init_date,
         })
         .encode()
     )));
@@ -113,11 +115,11 @@ pub fn buy(
 }
 
 pub fn hold(event_program: &Program<'_>, creator: ActorId, event_id: u128) {
-    let res = event_program.send(USER, EventAction::Hold { creator, event_id });
+    let res = event_program.send(USER, EventAction::Close { creator, event_id });
 
     assert!(res.contains(&(
         USER,
-        Ok::<EventsEvent, EventError>(EventsEvent::Hold { creator, event_id }).encode()
+        Ok::<EventsEvent, EventError>(EventsEvent::Close { creator, event_id }).encode()
     )));
 }
 
@@ -127,7 +129,7 @@ pub fn check_current_event(
     event_id: u128,
     name: String,
     description: String,
-    date: u128,
+    event_init_date: u128,
     number_of_tickets: u128,
     tickets_left: u128,
 ) {
@@ -136,7 +138,8 @@ pub fn check_current_event(
     let CurrentEvent {
         name: true_name,
         description: true_description,
-        date: true_date,
+        event_img_url: _,
+        event_init_date: true_date,
         number_of_tickets: true_number_of_tickets,
         tickets_left: true_tickets_left,
     } = state.current_event(creator, event_id);
@@ -147,7 +150,7 @@ pub fn check_current_event(
     if description != true_description {
         std::panic!("EVENT: Event description differs.");
     }
-    if date != true_date {
+    if event_init_date != true_date {
         std::panic!("EVENT: Event date differs.");
     }
     if number_of_tickets != true_number_of_tickets {

@@ -21,10 +21,11 @@ impl Metadata for ContractMetadata {
 pub struct StateInfo {
     pub name: String,
     pub description: String,
+    pub event_img_url: String,
     pub creator: ActorId,
     pub number_of_tickets: u128,
     pub tickets_left: u128,
-    pub date: u128,
+    pub event_init_date: u128,
     pub buyers: Vec<ActorId>,
     pub running: bool,
     pub metadata: Vec<(ActorId, Tickets)>,
@@ -66,7 +67,8 @@ impl State {
                 CurrentEvent {
                     name: info.name,
                     description: info.description,
-                    date: info.date,
+                    event_img_url: info.event_img_url,
+                    event_init_date: info.event_init_date,
                     number_of_tickets,
                     tickets_left,
                 }
@@ -114,7 +116,8 @@ impl State {
 pub struct CurrentEvent {
     pub name: String,
     pub description: String,
-    pub date: u128,
+    pub event_img_url: String,
+    pub event_init_date: u128,
     pub number_of_tickets: u128,
     pub tickets_left: u128,
 }
@@ -128,11 +131,12 @@ pub enum EventAction {
         creator: ActorId,
         name: String,
         description: String,
+        event_img_url: String,
         number_of_tickets: u128,
-        date: u128,
+        event_init_date: u128,
     },
 
-    Hold {
+    Close {
         creator: ActorId,
         event_id: u128,
     },
@@ -153,9 +157,9 @@ pub enum EventsEvent {
         creator: ActorId,
         event_id: u128,
         number_of_tickets: u128,
-        date: u128,
+        event_init_date: u128,
     },
-    Hold {
+    Close {
         creator: ActorId,
         event_id: u128,
     },
@@ -179,8 +183,9 @@ pub enum EventError {
     EventNotFound,
     EventIdNotFound,
     BuyMintError(String),
-    HoldMintError(String),
-    HoldBurnError(String),
+    CloseMintError(String),
+    CloseBurnError(String),
+    EventAlreadyFinished,
 }
 
 #[derive(Debug, Encode, Decode, TypeInfo)]

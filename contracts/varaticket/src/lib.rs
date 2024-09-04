@@ -16,10 +16,11 @@ const NFT_COUNT: u128 = 1;
 struct EventInfo {
     name: String,
     description: String,
+    event_img_url: String,
     creator: ActorId,
     number_of_tickets: u128,
     tickets_left: u128,
-    date: u128,
+    event_init_date: u128,
     buyers: HashSet<ActorId>,
     running: bool,
     metadata: BTreeMap<ActorId, BTreeMap<u128, Option<TokenMetadata>>>,
@@ -58,10 +59,18 @@ async unsafe fn main() {
             creator,
             name,
             description,
+            event_img_url,
             number_of_tickets,
-            date,
-        } => event.create_event(name, description, creator, number_of_tickets, date),
-        EventAction::Hold { creator, event_id } => event.hold_event(creator, event_id).await,
+            event_init_date,
+        } => event.create_event(
+            name,
+            description,
+            event_img_url,
+            creator,
+            number_of_tickets,
+            event_init_date,
+        ),
+        EventAction::Close { creator, event_id } => event.close_event(creator, event_id).await,
         EventAction::BuyTickets {
             creator,
             event_id,
@@ -79,9 +88,10 @@ impl Event {
         &mut self,
         name: String,
         description: String,
+        event_img_url: String,
         creator: ActorId,
         number_of_tickets: u128,
-        date: u128,
+        event_init_date: u128,
     ) -> Result<EventsEvent, EventError> {
         /* if self.running {
             return Err(EventError::AlreadyRegistered);
@@ -92,8 +102,9 @@ impl Event {
             creator,
             name,
             description,
+            event_img_url,
             number_of_tickets,
-            date,
+            event_init_date,
             running: true,
             tickets_left: number_of_tickets,
             ..Default::default()
@@ -125,7 +136,7 @@ impl Event {
             creator,
             event_id: actor_ev_id,
             number_of_tickets,
-            date,
+            event_init_date,
         })
     }
 
@@ -156,6 +167,10 @@ impl Event {
         let ev_info = event
             .get_mut(&event_id)
             .ok_or(EventError::EventIdNotFound)?;
+
+        if ev_info.running == false {
+            return Err(EventError::EventAlreadyFinished);
+        }
 
         if ev_info.tickets_left < amount {
             return Err(EventError::NotEnoughTickets);
@@ -196,7 +211,7 @@ impl Event {
     }
 
     // MINT SEVERAL FOR A USER
-    async fn hold_event(
+    async fn close_event(
         &mut self,
         creator: ActorId,
         event_id: u128,
@@ -253,7 +268,7 @@ impl Event {
             ) {
                 Ok(_) => (),
                 Err(e) => {
-                    return Err(EventError::HoldBurnError(e.to_string()));
+                    return Err(EventError::CloseBurnError(e.to_string()));
                 }
             }
         }
@@ -281,14 +296,14 @@ impl Event {
                 ) {
                     Ok(_) => (),
                     Err(e) => {
-                        return Err(EventError::HoldMintError(e.to_string()));
+                        return Err(EventError::CloseMintError(e.to_string()));
                     }
                 }
             }
         }
         ev_info.running = false;
 
-        Ok(EventsEvent::Hold {
+        Ok(EventsEvent::Close {
             creator,
             event_id: ev_info.event_id,
         })
@@ -318,7 +333,8 @@ impl From<Event> for State {
                 let EventInfo {
                     name,
                     description,
-                    date,
+                    event_img_url,
+                    event_init_date,
                     number_of_tickets,
                     tickets_left,
                     creator,
@@ -340,9 +356,10 @@ impl From<Event> for State {
                     name: name.clone(),
                     description: description.clone(),
                     creator: *creator,
+                    event_img_url: event_img_url.clone(),
                     number_of_tickets: *number_of_tickets,
                     tickets_left: *tickets_left,
-                    date: *date,
+                    event_init_date: *event_init_date,
                     buyers: buyers.clone().into_iter().collect(),
                     running: *running,
                     metadata: meta_data,
