@@ -32,9 +32,5 @@ Join the future of events with VTicket. 🌟
 * 👉 Follow us on [X](http://x.com/vticket)  
 ```
 
-Feel free to copy and paste this into your Markdown editor or platform!
-
-## Tags
 
 #NFT #Blockchain #Tickets #Web3
-```
