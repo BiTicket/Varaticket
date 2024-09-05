@@ -19,19 +19,20 @@ VTicket is a platform based on Vara Network technology that transforms the way e
 3. **NFT Ticket Sale and Resale:**
    - Tickets can be sold and resold securely and transparently, ensuring protection for both buyers and sellers.
 
-## 🚀 *VTicket* revolutionizes events with NFT tickets. 🎫✨
 
+🚀 VTicket revolutionizes events with NFT tickets. 🎫✨  
+* 🌐 [Visit us at VTicket](https://vara-ticket.vercel.app/) for more details!  
+* 🔒 Security: Forget about fake tickets; each entry is unique on the blockchain.  
+* 🔍 Transparency: Clear records in every transaction.  
+* 💰 Resale: Sell your tickets without intermediaries.  
+* 🎉 Exclusivity: Access unique benefits.  
 
-- **🌐 Security:** Forget about fake tickets; each entry is unique on blockchain.
-- **🔒 Transparency:** Clear records in every transaction.
-- **💰 Resale:** Sell your tickets without intermediaries.
-- **🎉 Exclusivity:** Access unique benefits.
+Join the future of events with VTicket. 🌟  
+* 👉 [Telegram](http://t.me/vticket)  
+* 👉 Follow us on [X](http://x.com/vticket)  
+```
 
-Join the future of events with *VTicket*. 🌟
-
-- 👉 [Telegram](https://t.me/V_Ticket)
-- 👉 [Follow us on X](https://x.com/Vticket285101?t=gtHeXIgnKHHS2U68K3cLmg&s=09)
-
+Feel free to copy and paste this into your Markdown editor or platform!
 
 ## Tags
 
